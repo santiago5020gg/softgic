@@ -27,6 +27,12 @@ spring:
       value-serializer: org.apache.kafka.common.serialization.StringSerializer
       acks: all
 
+# Seguridad (Fase 3): validación de JWT emitidos por Keycloak.
+# El issuer es el que ven los tokens (host), las JWKS se descargan por la red interna.
+keycloak:
+  jwk-set-uri: ${KEYCLOAK_JWK_SET_URI:http://localhost:8081/realms/solicitudes/protocol/openid-connect/certs}
+  issuer: ${KEYCLOAK_ISSUER:http://localhost:8081/realms/solicitudes}
+
 management:
   endpoints:
     web:

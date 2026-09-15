@@ -58,6 +58,12 @@ public class GlobalExceptionHandler {
         return build(HttpStatus.METHOD_NOT_ALLOWED, ex.getMessage(), req);
     }
 
+    @ExceptionHandler(org.springframework.security.access.AccessDeniedException.class)
+    public ResponseEntity<ErrorResponse> accesoDenegado(org.springframework.security.access.AccessDeniedException ex,
+                                                        HttpServletRequest req) {
+        return build(HttpStatus.FORBIDDEN, "No tiene permisos para esta operación", req);
+    }
+
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ErrorResponse> generico(Exception ex, HttpServletRequest req) {
         return build(HttpStatus.INTERNAL_SERVER_ERROR, "Error interno", req);
