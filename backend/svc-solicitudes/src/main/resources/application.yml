@@ -20,8 +20,18 @@ spring:
     enabled: true
     locations: classpath:db/migration
   kafka:
-    # Se usa a partir de la Fase 2 (Outbox -> publicación de eventos).
+    # Producer del relay del Outbox (Fase 2): publica los eventos ya confirmados.
     bootstrap-servers: ${SPRING_KAFKA_BOOTSTRAP_SERVERS:localhost:9092}
+    producer:
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.apache.kafka.common.serialization.StringSerializer
+      acks: all
+
+# Seguridad (Fase 3): validación de JWT emitidos por Keycloak.
+# El issuer es el que ven los tokens (host), las JWKS se descargan por la red interna.
+keycloak:
+  jwk-set-uri: ${KEYCLOAK_JWK_SET_URI:http://localhost:8081/realms/solicitudes/protocol/openid-connect/certs}
+  issuer: ${KEYCLOAK_ISSUER:http://localhost:8081/realms/solicitudes}
 
 management:
   endpoints:

@@ -1,0 +1,65 @@
+{
+  "realm": "solicitudes",
+  "enabled": true,
+  "sslRequired": "none",
+  "attributes": {
+    "frontendUrl": "http://localhost:8081"
+  },
+  "registrationAllowed": false,
+  "roles": {
+    "realm": [
+      { "name": "SOLICITANTE", "description": "Crea y consulta sus solicitudes" },
+      { "name": "ANALISTA", "description": "Atiende y resuelve solicitudes" },
+      { "name": "SUPERVISOR", "description": "Consulta todas, devuelve y cierra" }
+    ]
+  },
+  "clients": [
+    {
+      "clientId": "solicitudes-shell",
+      "name": "Shell / microfrontend (SPA)",
+      "enabled": true,
+      "protocol": "openid-connect",
+      "publicClient": true,
+      "standardFlowEnabled": true,
+      "directAccessGrantsEnabled": true,
+      "redirectUris": ["http://localhost:5173/*"],
+      "webOrigins": ["*"],
+      "attributes": {
+        "pkce.code.challenge.method": "S256",
+        "post.logout.redirect.uris": "http://localhost:5173/*"
+      }
+    }
+  ],
+  "users": [
+    {
+      "username": "ana.solicitante",
+      "enabled": true,
+      "emailVerified": true,
+      "firstName": "Ana",
+      "lastName": "Solicitante",
+      "email": "ana.solicitante@example.gov",
+      "credentials": [{ "type": "password", "value": "Password123!", "temporary": false }],
+      "realmRoles": ["SOLICITANTE"]
+    },
+    {
+      "username": "carlos.analista",
+      "enabled": true,
+      "emailVerified": true,
+      "firstName": "Carlos",
+      "lastName": "Analista",
+      "email": "carlos.analista@example.gov",
+      "credentials": [{ "type": "password", "value": "Password123!", "temporary": false }],
+      "realmRoles": ["ANALISTA"]
+    },
+    {
+      "username": "sofia.supervisor",
+      "enabled": true,
+      "emailVerified": true,
+      "firstName": "Sofia",
+      "lastName": "Supervisor",
+      "email": "sofia.supervisor@example.gov",
+      "credentials": [{ "type": "password", "value": "Password123!", "temporary": false }],
+      "realmRoles": ["SUPERVISOR"]
+    }
+  ]
+}

@@ -24,6 +24,13 @@ spring:
     consumer:
       group-id: svc-indicadores
       auto-offset-reset: earliest
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+
+# Seguridad (Fase 3): valida JWT de Keycloak para proteger los endpoints de indicadores.
+keycloak:
+  jwk-set-uri: ${KEYCLOAK_JWK_SET_URI:http://localhost:8081/realms/solicitudes/protocol/openid-connect/certs}
+  issuer: ${KEYCLOAK_ISSUER:http://localhost:8081/realms/solicitudes}
 
 management:
   endpoints:

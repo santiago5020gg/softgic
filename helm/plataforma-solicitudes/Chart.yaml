@@ -1,0 +1,6 @@
+apiVersion: v2
+name: plataforma-solicitudes
+description: Microservicios de la plataforma de gestión de solicitudes operacionales (svc-solicitudes, svc-indicadores)
+type: application
+version: 0.1.0
+appVersion: "1.0.0"

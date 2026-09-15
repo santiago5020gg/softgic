@@ -1,0 +1,54 @@
+# Valores del chart. La infraestructura (SQL Server, Kafka, Keycloak) NO se despliega
+# aquí: se referencia por configuración. Los secretos NO se versionan con valores reales.
+
+image:
+  pullPolicy: IfNotPresent
+
+# Credenciales sensibles: en producción usar 'existingSecret' (un Secret creado aparte,
+# p.ej. por el pipeline o un gestor de secretos). Si se deja vacío, el chart crea un
+# Secret con 'databasePassword' — valor de EJEMPLO, cámbialo por ambiente.
+secret:
+  existingSecret: ""
+  databasePassword: "CHANGE_ME"
+
+# Configuración por microservicio.
+services:
+  solicitudes:
+    image:
+      repository: prueba-softgic-svc-solicitudes
+      tag: latest
+    replicaCount: 1
+    port: 8080
+    resources:
+      requests:
+        cpu: 250m
+        memory: 512Mi
+      limits:
+        cpu: "1"
+        memory: 1Gi
+    config:
+      SPRING_DATASOURCE_URL: "jdbc:sqlserver://sqlserver:1433;databaseName=solicitudes;encrypt=true;trustServerCertificate=true"
+      SPRING_DATASOURCE_USERNAME: "sa"
+      SPRING_KAFKA_BOOTSTRAP_SERVERS: "kafka:9092"
+      KEYCLOAK_JWK_SET_URI: "http://keycloak:8080/realms/solicitudes/protocol/openid-connect/certs"
+      KEYCLOAK_ISSUER: "http://localhost:8081/realms/solicitudes"
+
+  indicadores:
+    image:
+      repository: prueba-softgic-svc-indicadores
+      tag: latest
+    replicaCount: 1
+    port: 8080
+    resources:
+      requests:
+        cpu: 250m
+        memory: 512Mi
+      limits:
+        cpu: "1"
+        memory: 1Gi
+    config:
+      SPRING_DATASOURCE_URL: "jdbc:sqlserver://sqlserver:1433;databaseName=indicadores;encrypt=true;trustServerCertificate=true"
+      SPRING_DATASOURCE_USERNAME: "sa"
+      SPRING_KAFKA_BOOTSTRAP_SERVERS: "kafka:9092"
+      KEYCLOAK_JWK_SET_URI: "http://keycloak:8080/realms/solicitudes/protocol/openid-connect/certs"
+      KEYCLOAK_ISSUER: "http://localhost:8081/realms/solicitudes"
