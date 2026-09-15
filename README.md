@@ -63,6 +63,16 @@ OpenAPI / Swagger UI: `http://localhost:8080/swagger-ui.html` (o el puerto overr
 | POST | `/api/v1/solicitudes/{id}/transiciones` | Resolver / devolver / cerrar |
 | GET | `/api/v1/categorias` | Catálogo de categorías activas |
 
+### Indicadores (Fase 2 — svc-indicadores, `http://localhost:8082`)
+
+| Método | Ruta | Descripción |
+|---|---|---|
+| GET | `/api/v1/indicadores/resumen` | Solicitudes por estado y por categoría |
+| GET | `/api/v1/indicadores/tendencia` | Tendencia diaria |
+
+Alimentados por eventos Kafka (topic `solicitudes.eventos`) vía patrón **Outbox** en
+`svc-solicitudes` y consumo **idempotente** (`processed_event`) en `svc-indicadores`.
+
 > **Provisional hasta Keycloak (Fase 3):** el actor se envía en el header `X-Usuario`
 > (y `X-Rol`, aún sin enforcement). En Fase 3 se reemplaza por el JWT de Keycloak.
 
@@ -71,8 +81,8 @@ OpenAPI / Swagger UI: `http://localhost:8080/swagger-ui.html` (o el puerto overr
 | Fase | Contenido | Estado |
 |------|-----------|--------|
 | 0 | Monorepo, compose, SQL Server + migraciones, 2 servicios que arrancan | ✅ |
-| 1 | Dominio + casos de uso + API REST/OpenAPI (camino feliz A1, rechazo A4), eventos a Outbox | ✅ actual |
-| 2 | Outbox + Kafka + consumidor idempotente + indicadores (A2/A5) | ⏳ |
+| 1 | Dominio + casos de uso + API REST/OpenAPI (camino feliz A1, rechazo A4), eventos a Outbox | ✅ |
+| 2 | Relay Outbox→Kafka + consumidor idempotente + indicadores (A5) | ✅ actual |
 | 3 | Keycloak: realm, PKCE en front, Resource Server + RBAC (A3) | ⏳ |
 | 4 | Frontend: shell + microfrontend (Module Federation/Rspack), MUI, Redux, Zod (A6) | ⏳ |
 | 5 | Pruebas: JUnit/JaCoCo, Vitest/Storybook, Karate (A1,A3,recorrido) | ⏳ |

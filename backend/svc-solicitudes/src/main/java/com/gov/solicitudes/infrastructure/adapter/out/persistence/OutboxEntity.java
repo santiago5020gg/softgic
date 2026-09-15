@@ -66,11 +66,43 @@ public class OutboxEntity {
         return eventId;
     }
 
+    public String getAggregateId() {
+        return aggregateId;
+    }
+
     public String getType() {
         return type;
     }
 
+    public Integer getVersion() {
+        return version;
+    }
+
+    public String getCorrelationId() {
+        return correlationId;
+    }
+
+    public String getPayload() {
+        return payload;
+    }
+
+    public LocalDateTime getOccurredAt() {
+        return occurredAt;
+    }
+
     public boolean isPublished() {
         return published;
+    }
+
+    public void setPublished(boolean published) {
+        this.published = published;
+    }
+
+    public LocalDateTime getPublishedAt() {
+        return publishedAt;
+    }
+
+    public void setPublishedAt(LocalDateTime publishedAt) {
+        this.publishedAt = publishedAt;
     }
 }
