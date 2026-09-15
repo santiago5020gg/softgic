@@ -41,7 +41,7 @@ Kafka + Keycloak → los dos servicios.
 | svc-indicadores  | http://localhost:8082/actuator/health           |
 | Keycloak (admin) | http://localhost:8081                           |
 | SQL Server       | localhost:1433 (sa / valor de `MSSQL_SA_PASSWORD`) |
-| Kafka            | localhost:9092                                   |
+| Kafka            | interno en `kafka:9092` (red del compose)        |
 
 ### Validación del estado
 
