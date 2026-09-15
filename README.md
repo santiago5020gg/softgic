@@ -73,8 +73,31 @@ OpenAPI / Swagger UI: `http://localhost:8080/swagger-ui.html` (o el puerto overr
 Alimentados por eventos Kafka (topic `solicitudes.eventos`) vía patrón **Outbox** en
 `svc-solicitudes` y consumo **idempotente** (`processed_event`) en `svc-indicadores`.
 
-> **Provisional hasta Keycloak (Fase 3):** el actor se envía en el header `X-Usuario`
-> (y `X-Rol`, aún sin enforcement). En Fase 3 se reemplaza por el JWT de Keycloak.
+## Seguridad (Fase 3 — Keycloak / OIDC)
+
+Realm `solicitudes` (importado por `docker compose`). El backend actúa como **Resource
+Server**: valida el JWT (issuer del host, JWKS por la red interna) y aplica **RBAC en
+servidor**. El actor auditable es el `preferred_username` del token.
+
+**Usuarios de prueba** (password `Password123!`):
+
+| Usuario | Rol | Puede |
+|---|---|---|
+| `ana.solicitante` | SOLICITANTE | crear y consultar |
+| `carlos.analista` | ANALISTA | tomar y resolver |
+| `sofia.supervisor` | SUPERVISOR | consultar todas, devolver y cerrar |
+
+**Obtener un token** (direct access grant, solo para pruebas):
+
+```bash
+curl -s -X POST http://localhost:8081/realms/solicitudes/protocol/openid-connect/token \
+  -d grant_type=password -d client_id=solicitudes-shell \
+  -d username=sofia.supervisor -d password=Password123!
+# usar el access_token como:  -H "Authorization: Bearer <token>"
+```
+
+Sin token → `401`; rol insuficiente → `403` (p. ej. un SOLICITANTE cerrando → escenario A3).
+El frontend usará Authorization Code + PKCE con el client público `solicitudes-shell` (Fase 4).
 
 ## Roadmap
 
@@ -82,8 +105,8 @@ Alimentados por eventos Kafka (topic `solicitudes.eventos`) vía patrón **Outbo
 |------|-----------|--------|
 | 0 | Monorepo, compose, SQL Server + migraciones, 2 servicios que arrancan | ✅ |
 | 1 | Dominio + casos de uso + API REST/OpenAPI (camino feliz A1, rechazo A4), eventos a Outbox | ✅ |
-| 2 | Relay Outbox→Kafka + consumidor idempotente + indicadores (A5) | ✅ actual |
-| 3 | Keycloak: realm, PKCE en front, Resource Server + RBAC (A3) | ⏳ |
+| 2 | Relay Outbox→Kafka + consumidor idempotente + indicadores (A5) | ✅ |
+| 3 | Keycloak: realm + Resource Server (JWT) + RBAC en servidor (A3) | ✅ actual |
 | 4 | Frontend: shell + microfrontend (Module Federation/Rspack), MUI, Redux, Zod (A6) | ⏳ |
 | 5 | Pruebas: JUnit/JaCoCo, Vitest/Storybook, Karate (A1,A3,recorrido) | ⏳ |
 | 6 | Helm + GitLab CI + diagramas + documentación final (A7) | ⏳ |
