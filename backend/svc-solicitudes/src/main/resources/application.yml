@@ -20,8 +20,12 @@ spring:
     enabled: true
     locations: classpath:db/migration
   kafka:
-    # Se usa a partir de la Fase 2 (Outbox -> publicación de eventos).
+    # Producer del relay del Outbox (Fase 2): publica los eventos ya confirmados.
     bootstrap-servers: ${SPRING_KAFKA_BOOTSTRAP_SERVERS:localhost:9092}
+    producer:
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.apache.kafka.common.serialization.StringSerializer
+      acks: all
 
 management:
   endpoints:
