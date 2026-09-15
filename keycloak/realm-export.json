@@ -2,6 +2,9 @@
   "realm": "solicitudes",
   "enabled": true,
   "sslRequired": "none",
+  "attributes": {
+    "frontendUrl": "http://localhost:8081"
+  },
   "registrationAllowed": false,
   "roles": {
     "realm": [
