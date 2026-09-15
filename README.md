@@ -50,12 +50,28 @@ curl http://localhost:8080/actuator/health   # {"status":"UP"}
 curl http://localhost:8082/actuator/health   # {"status":"UP"}
 ```
 
+## API (Fase 1 — svc-solicitudes)
+
+OpenAPI / Swagger UI: `http://localhost:8080/swagger-ui.html` (o el puerto override).
+
+| Método | Ruta | Descripción |
+|---|---|---|
+| POST | `/api/v1/solicitudes` | Crear (201 → REGISTRADA) |
+| GET | `/api/v1/solicitudes?estado=&categoriaId=&page=&size=` | Listar (paginado + filtro) |
+| GET | `/api/v1/solicitudes/{id}` | Detalle con línea de tiempo |
+| POST | `/api/v1/solicitudes/{id}/asignaciones` | Tomar (→ EN_ATENCION) |
+| POST | `/api/v1/solicitudes/{id}/transiciones` | Resolver / devolver / cerrar |
+| GET | `/api/v1/categorias` | Catálogo de categorías activas |
+
+> **Provisional hasta Keycloak (Fase 3):** el actor se envía en el header `X-Usuario`
+> (y `X-Rol`, aún sin enforcement). En Fase 3 se reemplaza por el JWT de Keycloak.
+
 ## Roadmap
 
 | Fase | Contenido | Estado |
 |------|-----------|--------|
-| 0 | Monorepo, compose, SQL Server + migraciones, 2 servicios que arrancan | ✅ actual |
-| 1 | Dominio + casos de uso + API REST/OpenAPI (camino feliz, A1/A4) | ⏳ |
+| 0 | Monorepo, compose, SQL Server + migraciones, 2 servicios que arrancan | ✅ |
+| 1 | Dominio + casos de uso + API REST/OpenAPI (camino feliz A1, rechazo A4), eventos a Outbox | ✅ actual |
 | 2 | Outbox + Kafka + consumidor idempotente + indicadores (A2/A5) | ⏳ |
 | 3 | Keycloak: realm, PKCE en front, Resource Server + RBAC (A3) | ⏳ |
 | 4 | Frontend: shell + microfrontend (Module Federation/Rspack), MUI, Redux, Zod (A6) | ⏳ |
