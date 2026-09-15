@@ -1,0 +1,13 @@
+{
+  "eventId": "4d5e6f7a-8b9c-0d1e-2f3a-4b5c6d7e8f90",
+  "type": "SolicitudCerrada",
+  "aggregateId": "SOL-2026-000001",
+  "version": 1,
+  "correlationId": "c0a80101-1111-2222-3333-444455556666",
+  "occurredAt": "2026-09-15T16:45:00",
+  "payload": {
+    "codigo": "SOL-2026-000001",
+    "estado": "CERRADA",
+    "actor": "sofia.supervisor"
+  }
+}
