@@ -106,8 +106,8 @@ El frontend usará Authorization Code + PKCE con el client público `solicitudes
 | 0 | Monorepo, compose, SQL Server + migraciones, 2 servicios que arrancan | ✅ |
 | 1 | Dominio + casos de uso + API REST/OpenAPI (camino feliz A1, rechazo A4), eventos a Outbox | ✅ |
 | 2 | Relay Outbox→Kafka + consumidor idempotente + indicadores (A5) | ✅ |
-| 3 | Keycloak: realm + Resource Server (JWT) + RBAC en servidor (A3) | ✅ actual |
-| 4 | Frontend: shell + microfrontend (Module Federation/Rspack), MUI, Redux, Zod (A6) | ⏳ |
+| 3 | Keycloak: realm + Resource Server (JWT) + RBAC en servidor (A3) | ✅ |
+| 4 | Frontend: shell + microfrontend (Module Federation/Rspack), MUI, Redux, Zod (A6) | ✅ actual |
 | 5 | Pruebas: JUnit/JaCoCo, Vitest/Storybook, Karate (A1,A3,recorrido) | ⏳ |
 | 6 | Helm + GitLab CI + diagramas + documentación final (A7) | ⏳ |
 

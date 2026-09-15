@@ -1,0 +1,25 @@
+{
+  "name": "mf-remoto",
+  "version": "0.0.1",
+  "private": true,
+  "description": "Microfrontend remoto (panel de indicadores) — Module Federation sobre Rspack",
+  "scripts": {
+    "build": "rspack build",
+    "dev": "rspack serve",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0",
+    "@mui/material": "^7.0.0",
+    "@emotion/react": "^11.13.0",
+    "@emotion/styled": "^11.13.0"
+  },
+  "devDependencies": {
+    "@rspack/core": "^1.1.8",
+    "@rspack/cli": "^1.1.8",
+    "typescript": "^5.6.3",
+    "@types/react": "^19.0.0",
+    "@types/react-dom": "^19.0.0"
+  }
+}
