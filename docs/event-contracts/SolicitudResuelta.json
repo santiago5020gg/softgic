@@ -1,0 +1,13 @@
+{
+  "eventId": "2b3c4d5e-6f7a-8b9c-0d1e-2f3a4b5c6d7e",
+  "type": "SolicitudResuelta",
+  "aggregateId": "SOL-2026-000001",
+  "version": 1,
+  "correlationId": "c0a80101-1111-2222-3333-444455556666",
+  "occurredAt": "2026-09-15T15:40:00",
+  "payload": {
+    "codigo": "SOL-2026-000001",
+    "estado": "RESUELTA",
+    "actor": "carlos.analista"
+  }
+}

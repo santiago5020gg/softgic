@@ -1,0 +1,158 @@
+# Pipeline GitLab CI — Plataforma de gestión de solicitudes operacionales (requisito §3.5).
+#
+# Etapas verificables: compilación, pruebas, cobertura, construcción de imágenes y
+# validación de Helm. El despliegue real queda como etapa MANUAL documentada.
+#
+# Promoción por ambientes: dev -> staging -> prod. Cada ambiente usa sus propias
+# variables de CI/CD (Settings > CI/CD > Variables), NUNCA secretos en el repo:
+#   - MSSQL_SA_PASSWORD, KEYCLOAK_ADMIN_PASSWORD, SECURITY/JWT, registry creds, KUBECONFIG.
+# Las imágenes se etiquetan con $CI_COMMIT_SHORT_SHA y se promueven por ambiente.
+
+stages:
+  - build
+  - test
+  - coverage
+  - package
+  - helm
+  - deploy
+
+variables:
+  MAVEN_OPTS: "-Dmaven.repo.local=$CI_PROJECT_DIR/.m2/repository"
+  MAVEN_CLI_OPTS: "-B --no-transfer-progress"
+
+# Caché del repositorio Maven entre jobs.
+.maven_cache: &maven_cache
+  cache:
+    key: "$CI_COMMIT_REF_SLUG-m2"
+    paths:
+      - .m2/repository
+
+# ---------------------------------------------------------------------------
+# BUILD — compila ambos servicios (sin tests, empaqueta el jar).
+# ---------------------------------------------------------------------------
+build:backend:
+  stage: build
+  image: maven:3.9-eclipse-temurin-21
+  <<: *maven_cache
+  script:
+    - mvn $MAVEN_CLI_OPTS -DskipTests -f backend/svc-solicitudes/pom.xml package
+    - mvn $MAVEN_CLI_OPTS -DskipTests -f backend/svc-indicadores/pom.xml package
+  artifacts:
+    paths:
+      - backend/svc-solicitudes/target/*.jar
+      - backend/svc-indicadores/target/*.jar
+    expire_in: 1 day
+
+# ---------------------------------------------------------------------------
+# TEST — pruebas unitarias (JUnit 5 + Mockito) de ambos servicios.
+# ---------------------------------------------------------------------------
+test:backend:
+  stage: test
+  image: maven:3.9-eclipse-temurin-21
+  <<: *maven_cache
+  script:
+    - mvn $MAVEN_CLI_OPTS -f backend/svc-solicitudes/pom.xml test
+    - mvn $MAVEN_CLI_OPTS -f backend/svc-indicadores/pom.xml test
+  artifacts:
+    when: always
+    reports:
+      junit:
+        - backend/svc-solicitudes/target/surefire-reports/TEST-*.xml
+        - backend/svc-indicadores/target/surefire-reports/TEST-*.xml
+    paths:
+      - backend/svc-solicitudes/target/site/jacoco
+      - backend/svc-indicadores/target/site/jacoco
+    expire_in: 1 week
+
+# Pruebas del frontend (shell): typecheck/build + Vitest.
+test:frontend:
+  stage: test
+  image: node:20
+  script:
+    - cd frontend/shell
+    - npm install --no-audit --no-fund --legacy-peer-deps
+    - npm run build
+    - npm test -- --run
+  cache:
+    key: "$CI_COMMIT_REF_SLUG-npm-shell"
+    paths:
+      - frontend/shell/node_modules
+
+# ---------------------------------------------------------------------------
+# COVERAGE — publica el reporte JaCoCo y extrae el % de cobertura.
+# ---------------------------------------------------------------------------
+coverage:jacoco:
+  stage: coverage
+  image: eclipse-temurin:21-jre
+  needs: ["test:backend"]
+  script:
+    # Extrae la cobertura de instrucciones del dominio/casos de uso del CSV de JaCoCo.
+    - |
+      awk -F, 'NR>1{m+=$4;c+=$5} END{if(c+m>0) printf "Cobertura total instrucciones: %.1f%%\n", c*100/(c+m)}' \
+        backend/svc-solicitudes/target/site/jacoco/jacoco.csv || true
+  coverage: '/Cobertura total instrucciones: (\d+\.\d+)%/'
+  artifacts:
+    paths:
+      - backend/svc-solicitudes/target/site/jacoco
+      - backend/svc-indicadores/target/site/jacoco
+    expire_in: 1 week
+
+# ---------------------------------------------------------------------------
+# PACKAGE — construye las 4 imágenes Docker (2 servicios + shell + remoto).
+# ---------------------------------------------------------------------------
+package:images:
+  stage: package
+  image: docker:27
+  services:
+    - docker:27-dind
+  variables:
+    DOCKER_TLS_CERTDIR: "/certs"
+  before_script:
+    - echo "$CI_REGISTRY_PASSWORD" | docker login -u "$CI_REGISTRY_USER" --password-stdin "$CI_REGISTRY"
+  script:
+    - docker build -t $CI_REGISTRY_IMAGE/svc-solicitudes:$CI_COMMIT_SHORT_SHA backend/svc-solicitudes
+    - docker build -t $CI_REGISTRY_IMAGE/svc-indicadores:$CI_COMMIT_SHORT_SHA backend/svc-indicadores
+    - docker build -t $CI_REGISTRY_IMAGE/shell:$CI_COMMIT_SHORT_SHA frontend/shell
+    - docker build -t $CI_REGISTRY_IMAGE/mf-remoto:$CI_COMMIT_SHORT_SHA frontend/mf-remoto
+    - docker push $CI_REGISTRY_IMAGE/svc-solicitudes:$CI_COMMIT_SHORT_SHA
+    - docker push $CI_REGISTRY_IMAGE/svc-indicadores:$CI_COMMIT_SHORT_SHA
+    - docker push $CI_REGISTRY_IMAGE/shell:$CI_COMMIT_SHORT_SHA
+    - docker push $CI_REGISTRY_IMAGE/mf-remoto:$CI_COMMIT_SHORT_SHA
+  rules:
+    - if: '$CI_COMMIT_BRANCH == "develop" || $CI_COMMIT_BRANCH == "master"'
+
+# ---------------------------------------------------------------------------
+# HELM — valida el chart (lint + render), no despliega.
+# ---------------------------------------------------------------------------
+helm:validate:
+  stage: helm
+  image:
+    name: alpine/helm:3.16.1
+    entrypoint: [""]
+  script:
+    - helm lint helm/plataforma-solicitudes
+    - helm template plataforma helm/plataforma-solicitudes > /dev/null
+  rules:
+    - exists:
+        - helm/plataforma-solicitudes/Chart.yaml
+
+# ---------------------------------------------------------------------------
+# DEPLOY — MANUAL (documentado). No despliega de verdad en este reto.
+# ---------------------------------------------------------------------------
+deploy:staging:
+  stage: deploy
+  image:
+    name: alpine/helm:3.16.1
+    entrypoint: [""]
+  script:
+    # helm upgrade --install plataforma helm/plataforma-solicitudes \
+    #   --namespace staging --create-namespace \
+    #   --set image.tag=$CI_COMMIT_SHORT_SHA \
+    #   --values helm/plataforma-solicitudes/values-staging.yaml
+    # KUBECONFIG y secretos vienen de variables de CI protegidas por ambiente.
+    - echo "Despliegue a STAGING (manual). Requiere KUBECONFIG y secretos por variable de CI."
+  environment:
+    name: staging
+  when: manual
+  rules:
+    - if: '$CI_COMMIT_BRANCH == "develop"'
