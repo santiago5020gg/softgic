@@ -80,6 +80,9 @@ public class SolicitudPersistenceAdapter implements SolicitudRepositoryPort {
         if (filtro != null && filtro.categoriaId() != null) {
             spec = spec.and((root, query, cb) -> cb.equal(root.get("categoriaId"), filtro.categoriaId()));
         }
+        if (filtro != null && filtro.solicitante() != null) {
+            spec = spec.and((root, query, cb) -> cb.equal(root.get("solicitante"), filtro.solicitante()));
+        }
         return spec;
     }
 }
