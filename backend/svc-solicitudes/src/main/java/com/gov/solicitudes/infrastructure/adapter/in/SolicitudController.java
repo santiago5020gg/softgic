@@ -65,14 +65,22 @@ public class SolicitudController {
             @RequestParam(required = false) Estado estado,
             @RequestParam(required = false) Long categoriaId,
             @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "20") int size) {
-        return service.listar(new FiltroSolicitudes(estado, categoriaId), page, size);
+            @RequestParam(defaultValue = "20") int size,
+            JwtAuthenticationToken auth) {
+        // Regla del reto: el SOLICITANTE solo consulta SUS solicitudes; analista/supervisor ven todas.
+        String soloDe = veTodas(auth) ? null : auth.getName();
+        return service.listar(new FiltroSolicitudes(estado, categoriaId, soloDe), page, size);
     }
 
     @GetMapping("/{id}")
     @Transactional(readOnly = true)
-    public SolicitudDetalleDto detalle(@PathVariable Long id) {
-        return service.detalle(id);
+    public SolicitudDetalleDto detalle(@PathVariable Long id, JwtAuthenticationToken auth) {
+        SolicitudDetalleDto dto = service.detalle(id);
+        // Un SOLICITANTE no puede ver el detalle de una solicitud ajena.
+        if (!veTodas(auth) && !auth.getName().equals(dto.solicitante())) {
+            throw new AccessDeniedException("No puede consultar solicitudes de otro usuario");
+        }
+        return dto;
     }
 
     @PostMapping("/{id}/asignaciones")
@@ -104,6 +112,11 @@ public class SolicitudController {
 
     private boolean tieneRol(JwtAuthenticationToken auth, String rol) {
         return auth.getAuthorities().stream().anyMatch(a -> a.getAuthority().equals(rol));
+    }
+
+    /** Un ANALISTA o SUPERVISOR ve todas las solicitudes; el SOLICITANTE solo las suyas. */
+    private boolean veTodas(JwtAuthenticationToken auth) {
+        return tieneRol(auth, "ROLE_ANALISTA") || tieneRol(auth, "ROLE_SUPERVISOR");
     }
 
     private String correlationId(JwtAuthenticationToken auth) {
